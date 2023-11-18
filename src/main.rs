@@ -1,9 +1,14 @@
+use std::time::Instant;
 use petgraph::{Directed, Graph};
 
 mod path_tracker;
 mod solver;
+mod plot_function;
+mod sample_graph;
 
+use plot_function::plot;
 use solver::EdmondsKarpSolver;
+use sample_graph::get_sample_graph;
 
 fn main() {
     let source = 5;
@@ -43,6 +48,19 @@ fn main() {
         (8, sink_2, 10),
     ]);
     let mut solver = EdmondsKarpSolver::new();
-    let max_flow = solver.solve(&graph_2, source_2, sink_2);
-    println!("{}", max_flow);
+    let mut series = Vec::new();
+
+    let min_number_of_nodes = 5;
+    let max_number_of_nodes = 25;
+
+    for _ in 0..1000 {
+        let g = get_sample_graph(min_number_of_nodes, max_number_of_nodes);
+        let now = Instant::now();
+        let _max_flow = solver.solve(&g.0, g.1, g.2);
+        let elapsed = now.elapsed();
+        series.push((elapsed.as_nanos() as f32 / 1000_000.0, g.2 + 1));
+        //println!("{}: {}", i, max_flow);
+    }
+
+    plot(series, max_number_of_nodes, min_number_of_nodes).unwrap();
 }
